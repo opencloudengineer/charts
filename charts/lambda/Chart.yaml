@@ -22,7 +22,7 @@ dependencies:
     version: 9.2.x
     repository: "https://charts.bitnami.com/bitnami"
     condition: mariadb.enabled
-description: Helm Chart for deploying an app with MySql, MariaDB, Postgres, Mongo and/or Redis
+description: Helm Chart for deploying an app with MySql, MariaDB, Postgres, MongoDB and/or Redis
 engine: gotpl
 home: https://github.com/opencloudengineer/charts/tree/main/charts/lambda
 icon: https://helm.sh/img/helm.svg
@@ -38,7 +38,7 @@ keywords:
 - caching
 maintainers:
   - email: serverlessengineer@gmail.com
-    name: Siddharth Tiwari
+    name: opencloudengineer
 name: lambda
 sources:
   - https://www.mysql.com/
@@ -46,4 +46,4 @@ sources:
   - https://www.postgresql.org/
   - https://redis.io/
   - https://mariadb.org/
-version: 0.0.2
+version: 0.0.3

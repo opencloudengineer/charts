@@ -34,10 +34,16 @@ spec:
             name: {{ .Values.application.secretName }}
         {{- end }}
         env:
-        - name: DATABASE_URL
-          value: {{ .Values.application.database_url | quote }}
-        - name: REDIS_CREDS
+        - name: POSTGRES_URI
+          value: {{ .Values.application.postgres_url | quote }}
+        - name: REDIS_URI
           value: {{ .Values.application.redis_url | quote }}
+        - name: MYSQL_URI
+          value: {{ .Values.application.mysql_url | quote }}
+        - name: MARIADB_URI
+          value: {{ .Values.application.mariadb_url | quote }}
+        - name: MONGODB_URI
+          value: {{ .Values.application.mongodb_url | quote }}
         - name: ENVIRONMENT_NAME
           value: {{ .Values.project.env | quote }}
         - name: ENVIRONMENT_URL

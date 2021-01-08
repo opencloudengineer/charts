@@ -30,14 +30,14 @@ jobs:
         with:
           version: v3.4.0
 
+      - name: Add Bitnami Repo
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.0.1
 
       - name: Run chart-testing (lint)
-        run: ct lint --target-branch main
-
-      - name: Add Bitnami Repo
-        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+        run: ct lint --target-branch main --all
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.1.0
