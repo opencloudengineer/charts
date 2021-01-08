@@ -1,0 +1,49 @@
+annotations:
+  category: FullStack
+apiVersion: v2
+dependencies:
+  - name: mysql
+    version: 8.2.x
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: mysql.enabled
+  - name: redis
+    version: 12.3.x
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: postgresql
+    version: 10.2.x
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: mongodb
+    version: 10.3.x
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: mongodb.enabled
+  - name: mariadb
+    version: 9.2.x
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: mariadb.enabled
+description: Helm Chart for deploying an app with MySql, Postgres, Mongo and/or Redis
+engine: gotpl
+home: https://github.com/opencloudengineer/charts/tree/main/lambda
+icon: https://helm.sh/img/helm.svg
+keywords:
+- database
+- mongodb
+- nosql
+- postgres
+- mysql
+- mariadb
+- sql
+- redis
+- caching
+maintainers:
+  - email: serverlessengineer@gmail.com
+    name: Siddharth Tiwari
+name: lambda
+sources:
+  - https://www.mysql.com/
+  - https://www.mongodb.com/
+  - https://www.postgresql.org/
+  - https://redis.io/
+  - https://mariadb.org/
+version: 0.0.1
