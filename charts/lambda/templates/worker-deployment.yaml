@@ -8,8 +8,8 @@ items:
   metadata:
     name: {{ template "trackableappname" $ }}-{{ $workerName }}
     annotations:
-      {{ if $.Values.git.repo }}repo: {{ $.Values.git.repo | quote }}{{ end }}
-      {{ if $.Values.git.slug }}slug: {{ $.Values.git.slug | quote }}{{ end }}
+      {{ if $.Values.project.repo }}repo: {{ $.Values.project.repo | quote }}{{ end }}
+      {{ if $.Values.project.slug }}slug: {{ $.Values.project.slug | quote }}{{ end }}
     labels:
       track: "{{ $.Values.application.track }}"
       tier: worker
@@ -31,8 +31,8 @@ items:
       metadata:
         annotations:
           checksum/application-secrets: "{{ $.Values.application.secretChecksum }}"
-          {{ if $.Values.git.repo }}repo: {{ $.Values.git.repo | quote }}{{ end }}
-          {{ if $.Values.git.slug }}slug: {{ $.Values.git.slug | quote }}{{ end }}
+          {{ if $.Values.project.repo }}repo: {{ $.Values.project.repo | quote }}{{ end }}
+          {{ if $.Values.project.slug }}slug: {{ $.Values.project.slug | quote }}{{ end }}
   {{- if $.Values.podAnnotations }}
   {{ toYaml $.Values.podAnnotations | indent 10 }}
   {{- end }}
@@ -63,7 +63,7 @@ items:
           - name: REDIS_CREDS
             value: {{ .Values.application.redis_url | quote }}
           - name: ENVIRONMENT_NAME
-            value: {{ $.Values.git.env | quote }}
+            value: {{ $.Values.project.env | quote }}
 {{- with $livenessProbeConfig := default $.Values.livenessProbe $workerConfig.livenessProbe -}}
 {{- if $livenessProbeConfig }}
           livenessProbe:

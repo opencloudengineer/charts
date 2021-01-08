@@ -4,8 +4,8 @@ kind: Deployment
 metadata:
   name: {{ template "trackableappname" . }}
   annotations:
-    {{ if .Values.git.repo }}repo: {{ .Values.git.repo | quote }}{{ end }}
-    {{ if .Values.git.slug }}slug: {{ .Values.git.slug | quote }}{{ end }}
+    {{ if .Values.project.repo }}repo: {{ .Values.project.repo | quote }}{{ end }}
+    {{ if .Values.project.slug }}slug: {{ .Values.project.slug | quote }}{{ end }}
   labels:
     app: {{ template "appname" . }}
     track: "{{ .Values.application.track }}"
@@ -29,8 +29,8 @@ spec:
     metadata:
       annotations:
         checksum/application-secrets: "{{ .Values.application.secretChecksum }}"
-        {{ if .Values.git.repo }}repo: {{ .Values.git.repo | quote }}{{ end }}
-        {{ if .Values.git.slug }}slug: {{ .Values.git.slug | quote }}{{ end }}
+        {{ if .Values.project.repo }}repo: {{ .Values.project.repo | quote }}{{ end }}
+        {{ if .Values.project.slug }}slug: {{ .Values.project.slug | quote }}{{ end }}
 {{- if .Values.podAnnotations }}
 {{ toYaml .Values.podAnnotations | indent 8 }}
 {{- end }}
@@ -72,9 +72,9 @@ spec:
         - name: DATABASE_URL
           value: {{ .Values.application.database_url | quote }}
         - name: ENVIRONMENT_NAME
-          value: {{ .Values.git.env | quote }}
+          value: {{ .Values.project.env | quote }}
         - name: ENVIRONMENT_URL
-          value: {{ .Values.git.url | quote }}
+          value: {{ .Values.project.url | quote }}
         - name: REDIS_CREDS
           value: {{ .Values.application.redis_url | quote }}
         ports:

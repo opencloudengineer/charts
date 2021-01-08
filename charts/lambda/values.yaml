@@ -19,7 +19,7 @@ hpa:
   minReplicas: 1
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
-git:
+project:
   repo:
   slug:
   env:
@@ -76,16 +76,14 @@ postgresql:
   enabled: false
 
 resources:
-#  limits:
-#    cpu: 100m
-#    memory: 128Mi
+  #  limits:
+  #    cpu: 100m
+  #    memory: 128Mi
   requests:
 #    cpu: 100m
 #    memory: 128Mi
 
-## Configure PodDisruptionBudget
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/disruptions/
-#
 podDisruptionBudget:
   enabled: false
   # minAvailable: 1
@@ -98,14 +96,15 @@ networkPolicy:
     podSelector:
       matchLabels: {}
     ingress:
-    - from:
-      - podSelector:
-          matchLabels: {}
-      - namespaceSelector:
-          matchLabels:
-            managed_by: lambda
+      - from:
+          - podSelector:
+              matchLabels: {}
+          - namespaceSelector:
+              matchLabels:
+                managed_by: lambda
 
-workers: {}
+workers:
+  {}
   # worker:
   #   replicaCount: 1
   #   terminationGracePeriodSeconds: 60

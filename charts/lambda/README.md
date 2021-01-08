@@ -17,14 +17,14 @@
 | application.initializeCommand | If present, this variable will run as shell command within an application Container as a Helm post-install Hook. Intended to run database initialization commands. When set, the Deployment resource will be skipped.| `nil` |
 | application.secretName        | Pass in the name of a Secret which the deployment will [load all key-value pairs from the Secret as environment variables](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables) in the application container. | `nil` |
 | application.secretChecksum    | Pass in the checksum of the secrets referenced by `application.secretName`. | `nil` |
-| hpa.enabled                   | If true, enables horizontal pod autoscaler. A resource request is also required to be set, such as `resources.requests.cpu: 200m`.| `false` |
+| hpa.enabled                   | If true, enables horizontal pod autoscaler. A resource request is also required to be set, such as `resources.requests.cpu: 200m`.| `true` |
 | hpa.minReplicas               |             | `1`                                |
 | hpa.maxReplicas               |             | `5`                                |
 | hpa.targetCPUUtilizationPercentage | Percentage threshold when HPA begins scaling out pods | `80` |
-| git.repo                    | project repo. | `nil` |
-| git.slug                    | environment slug. | `nil` |
-| git.env                | environment name. | `nil` |
-| git.url                 | environment url.  | `nil` |
+| project.repo                    | project repo. | `nil` |
+| project.slug                    | environment slug. | `nil` |
+| project.env                | environment name. | `nil` |
+| project.url                 | environment url.  | `nil` |
 | service.enabled               |             | `true`                             |
 | service.annotations           | Service annotations | `{}`                       |
 | service.name                  |             | `web`                              |

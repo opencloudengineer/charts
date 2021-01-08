@@ -39,7 +39,7 @@ spec:
         - name: REDIS_CREDS
           value: {{ .Values.application.redis_url | quote }}
         - name: ENVIRONMENT_NAME
-          value: {{ .Values.git.env | quote }}
+          value: {{ .Values.project.env | quote }}
         - name: ENVIRONMENT_URL
-          value: {{ .Values.git.url | quote }}
+          value: {{ .Values.project.url | quote }}
 {{- end -}}
