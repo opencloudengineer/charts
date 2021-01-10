@@ -46,4 +46,4 @@ sources:
   - https://www.postgresql.org/
   - https://redis.io/
   - https://mariadb.org/
-version: 0.0.1
+version: 0.1.0
