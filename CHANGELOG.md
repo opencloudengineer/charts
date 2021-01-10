@@ -1,4 +1,14 @@
-# 0.1.0 (2021-01-10)
+# [0.2.0](https://github.com/opencloudengineer/lambda/compare/v0.1.0...v0.2.0) (2021-01-10)
+
+
+### Features
+
+* add gitlab related annotations when CI is gitlab ([e963154](https://github.com/opencloudengineer/lambda/commit/e96315422347cfa40977db26d093ea0ef191ccaf))
+* store chart in docker image as chart version & docker image tag will be same ([cb412dd](https://github.com/opencloudengineer/lambda/commit/cb412dd86934baaebb08ea1fd2d7e827fa341bf3))
+
+
+
+# [0.1.0](https://github.com/opencloudengineer/lambda/compare/34516f51635cafce9d9ffc83eb8f5278187cd1f9...v0.1.0) (2021-01-10)
 
 
 ### Bug Fixes
