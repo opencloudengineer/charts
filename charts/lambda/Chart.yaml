@@ -27,15 +27,15 @@ engine: gotpl
 home: https://github.com/opencloudengineer/charts/tree/main/charts/lambda
 icon: https://helm.sh/img/helm.svg
 keywords:
-- database
-- mongodb
-- nosql
-- postgres
-- mysql
-- mariadb
-- sql
-- redis
-- caching
+  - database
+  - mongodb
+  - nosql
+  - postgres
+  - mysql
+  - mariadb
+  - sql
+  - redis
+  - caching
 maintainers:
   - email: serverlessengineer@gmail.com
     name: opencloudengineer
@@ -46,4 +46,4 @@ sources:
   - https://www.postgresql.org/
   - https://redis.io/
   - https://mariadb.org/
-version: 0.0.3
+version: 0.0.4
