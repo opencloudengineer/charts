@@ -29,7 +29,7 @@ service:
   annotations: {}
   name: web
   type: ClusterIP
-  url: http://my.host.com/
+  url: http://app.namespace.cluster.local/
   additionalHosts:
   commonName:
   externalPort: 5000

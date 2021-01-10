@@ -10,6 +10,8 @@ items:
     annotations:
       {{ if $.Values.project.repo }}repo: {{ $.Values.project.repo | quote }}{{ end }}
       {{ if $.Values.project.slug }}slug: {{ $.Values.project.slug | quote }}{{ end }}
+      {{ if $.Values.gitlab }}app.gitlab.com/app: {{ $.Values.project.repo | quote }}{{ end }}
+      {{ if $.Values.gitlab }}app.gitlab.com/env: {{ $.Values.project.slug | quote }}{{ end }}
     labels:
       track: "{{ $.Values.application.track }}"
       tier: worker
@@ -33,6 +35,8 @@ items:
           checksum/application-secrets: "{{ $.Values.application.secretChecksum }}"
           {{ if $.Values.project.repo }}repo: {{ $.Values.project.repo | quote }}{{ end }}
           {{ if $.Values.project.slug }}slug: {{ $.Values.project.slug | quote }}{{ end }}
+          {{ if $.Values.gitlab }}app.gitlab.com/app: {{ $.Values.project.repo | quote }}{{ end }}
+          {{ if $.Values.gitlab }}app.gitlab.com/env: {{ $.Values.project.slug | quote }}{{ end }}
   {{- if $.Values.podAnnotations }}
   {{ toYaml $.Values.podAnnotations | indent 10 }}
   {{- end }}
