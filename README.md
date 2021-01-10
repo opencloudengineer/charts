@@ -1,7 +1,7 @@
-# Helm Charts
+# Lambda Helm Chart
 
 The repository can be added using the following command:
 
 ```bash
-helm repo add opencloud https://opencloudengineer.github.io/charts
+helm repo add opencloud https://opencloudengineer.github.io/lambda
 ```

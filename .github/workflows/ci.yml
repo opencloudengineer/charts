@@ -1,31 +1,69 @@
-name: Build & Push Docker Image(s)
+name: Workflow
 
 on:
   push:
     branches:
       - main
-    paths:
-      - "auto-deploy"
 
 jobs:
-  docker:
+  Job:
     strategy:
       matrix:
         os: [ubuntu-latest]
+        python-version: [3.8]
+        helm-version: [v3.4.0]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Configure Git
+        run: |
+          git config user.name "${GITHUB_REPOSITORY_OWNER}"
+          git config user.email "${GITHUB_REPOSITORY_OWNER}@users.noreply.github.com"
+
+      - name: Fetch History
+        run: git fetch --prune --unshallow
+
+      - uses: FranzDiebold/github-env-vars-action@v2
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: ${{ matrix.helm-version }}
+
+      - name: Add Bitnami Repo
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.0.1
+
+      - name: Run chart-testing (lint)
+        run: ct lint --chart-dirs chart --target-branch main --all
+
+      - name: Install chart-releaser
+        run: |
+          brew tap helm/tap
+          brew install chart-releaser
 
       - name: Conventional Changelog Action
         id: changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.github_token }}
-          skip-commit: "true"
-          output-file: "false"
+          version-file: ./chart/lambda/Chart.yaml
+          version-path: version
+          release-count: 0
           git-user-name: ${{ github.repository_owner }}
           git-user-email: "${{ github.repository_owner }}@users.noreply.github.com"
+
+      - name: Create Package
+        run: cr package chart/lambda/ --package-path ./
 
       - name: Release
         if: ${{ steps.changelog.outputs.tag }}
@@ -36,12 +74,22 @@ jobs:
         run: |
           set -x
           assets=()
-          for asset in auto-deploy; do
+          for asset in lambda-*.tgz; do
             assets+=("-a" "$asset")
           done
           echo -e "$TAG\n\n$MSG" | hub release create "${assets[@]}" -F- "$TAG"
 
-      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Update Index.yaml
+        run: |
+          cr index \
+            --owner "${GITHUB_REPOSITORY_OWNER}" \
+            --git-repo "${CI_REPOSITORY_NAME}" \
+            --charts-repo "https://${GITHUB_REPOSITORY_OWNER}.github.io/${CI_REPOSITORY_NAME}" \
+            --token "${GITHUB_TOKEN}" \
+            --release-name-template "v{{ .Version }}" \
+            --push \
+            --package-path ./ \
+            -i index.yaml
         if: ${{ steps.changelog.outputs.tag }}
 
       - name: Set up Docker Buildx
