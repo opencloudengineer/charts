@@ -4,4 +4,5 @@ LABEL org.opencontainers.image.source="https://github.com/opencloudengineer/lamb
       description="Image for deploying an app using lambda helm chart" \
       maintainer="Siddharth Tiwari <serverlessengineer@gmail.com>"
 
-COPY auto-deploy /build/bin
+COPY chart assets
+COPY auto-deploy build/bin

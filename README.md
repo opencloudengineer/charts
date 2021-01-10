@@ -3,5 +3,5 @@
 The repository can be added using the following command:
 
 ```bash
-helm repo add opencloud https://opencloudengineer.github.io/lambda
+helm repo add lambda https://opencloudengineer.github.io/lambda
 ```
