@@ -4,6 +4,52 @@ entries:
   - annotations:
       category: FullStack
     apiVersion: v2
+    created: "2021-01-13T19:02:43.269147812Z"
+    dependencies:
+    - condition: mysql.enabled
+      name: mysql
+      repository: https://charts.bitnami.com/bitnami
+      version: 8.2.x
+    - condition: redis.enabled
+      name: redis
+      repository: https://charts.bitnami.com/bitnami
+      version: 12.3.x
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.2.x
+    - condition: mongodb.enabled
+      name: mongodb
+      repository: https://charts.bitnami.com/bitnami
+      version: 10.3.x
+    - condition: mariadb.enabled
+      name: mariadb
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.2.x
+    description: Helm Chart for deploying an app with MySql, MariaDB, Postgres, MongoDB and/or Redis
+    digest: a84ac86ff1de2565a0dccbe6fb871f041283bb7714e8ec4a9873a439f22a337f
+    home: https://github.com/opencloudengineer/lambda/tree/main/chart/lambda
+    icon: https://helm.sh/img/helm.svg
+    keywords:
+    - REST
+    - GraphQL
+    - gRPC
+    - deployments
+    - daemonsets
+    - statefulsets
+    maintainers:
+    - email: serverlessengineer@gmail.com
+      name: opencloudengineer
+    name: lambda
+    sources:
+    - https://helm.sh/docs/topics/charts
+    - https://gitlab.com/gitlab-org/cluster-integration/auto-deploy-image/-/tree/master/assets/auto-deploy-app
+    urls:
+    - https://github.com/opencloudengineer/lambda/releases/download/v0.3.0/lambda-0.3.0.tgz
+    version: 0.3.0
+  - annotations:
+      category: FullStack
+    apiVersion: v2
     created: "2021-01-10T23:06:29.113681972Z"
     dependencies:
     - condition: mysql.enabled
