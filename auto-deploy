@@ -6,9 +6,27 @@ set -e
 
 export AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE=/tmp/auto-deploy-environment-values.yaml
 export RELEASE_NAME=${HELM_RELEASE_NAME:-$CI_ENVIRONMENT_SLUG}
-export POSTGRESQL_RELEASE_NAME="${RELEASE_NAME}-postgresql"
-export POSTGRES_VERSION="${POSTGRES_VERSION:-"9.6.16"}"
-export POSTGRES_CHART_VERSION=${POSTGRES_CHART_VERSION:-"10.2.1"}
+
+export POSTGRESQL_VERSION=${POSTGRESQL_VERSION:-"11.10.0"};
+export REDIS_VERSION=${REDIS_VERSION:-"6.0.9"};
+export MYSQL_VERSION=${MYSQL_VERSION:-"8.0.22"};
+export MONGODB_VERSION=${MONGODB_VERSION:-"4.4.3"};
+export MARIADB_VERSION=${MARIADB_VERSION:-"10.5.8"};
+
+export POSTGRESQL_CHART_VERSION=${POSTGRESQL_CHART_VERSION:-"10.2.1"};
+export REDIS_CHART_VERSION=${REDIS_CHART_VERSION:-"12.4.0"};
+export MYSQL_CHART_VERSION=${MYSQL_CHART_VERSION:-"8.2.4"};
+export MONGODB_CHART_VERSION=${MONGODB_CHART_VERSION:-"10.3.6"};
+export MARIADB_CHART_VERSION=${MARIADB_CHART_VERSION:-"9.2.2"};
+
+APPS=(mariadb mongodb mysql redis postgresql)
+for i in "${APPS[@]}"; do
+  source <(echo "
+    export ${i^^}_RELEASE_NAME=${RELEASE_NAME}-${i};
+    "  
+  )
+done
+
 export ROLLOUT_RESOURCE_TYPE=${ROLLOUT_RESOURCE_TYPE:-"deployment"}
 export ASSETS_DIR='/assets'
 export CHART='lambda'
@@ -35,10 +53,10 @@ function download_chart() {
   elif [[ -n "$AUTO_DEVOPS_CHART" ]]; then
     # user specified a custom chart to use, but it can be a local directory or a remote chart
     if [[ -d "$AUTO_DEVOPS_CHART" ]]; then
-      echo "Download skipped. Using the chart at local path '$AUTO_DEVOPS_CHART' (moving to 'chart/' first)..."
+      echo "Download skipped. Using the chart at local path ${AUTO_DEVOPS_CHART@Q} (moving to 'chart/' first)..."
       mv "$AUTO_DEVOPS_CHART" chart/
     else
-      echo "Downloading remote chart '$AUTO_DEVOPS_CHART'..."
+      echo "Downloading remote chart ${AUTO_DEVOPS_CHART@Q}..."
       helm pull "$AUTO_DEVOPS_CHART" --untar
 
       local auto_chart_name
@@ -75,7 +93,7 @@ function add_custom_chart_repository() {
     return
   fi
 
-  echo "Adding Helm chart repository '$AUTO_DEVOPS_CHART_REPOSITORY_NAME'"
+  echo "Adding Helm chart repository ${AUTO_DEVOPS_CHART_REPOSITORY_NAME@Q}"
 
   # repo should always be added when present, because any chart can have external dependencies
   local helm_repo_auth=()
@@ -108,9 +126,9 @@ function write_environment_values_file() {
 
   # Helm 3 does not like `--set image.secrets[0]=""`
   if [[ "$CI_PROJECT_VISIBILITY" != "public" ]]; then
-    echo "image: { secrets: [ { name: gitlab-registry-${CI_PROJECT_PATH_SLUG} } ] }" >>"$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE"
+    echo "image: { secrets: [ { name: gitlab-registry-${CI_PROJECT_PATH_SLUG} } ] }" >>$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE
   else
-    echo "image: { secrets: null }" >>"$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE"
+    echo "image: { secrets: null }" >>$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE
   fi
 }
 
@@ -136,15 +154,15 @@ function persist_environment_url() {
 
 function auto_database_url() {
   local auto_database_url
-  auto_database_url="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRESQL_RELEASE_NAME}:5432/${POSTGRES_DB}"
+  auto_database_url="postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_RELEASE_NAME}:5432/${POSTGRESQL_DB}"
 
   echo "${DATABASE_URL-$auto_database_url}"
 }
 
 function install_postgresql() {
 
-  if [[ "$POSTGRES_VERSION" == "9.6.2" ]]; then
-    echo "The minimum supported POSTGRES_VERSION is 9.6.16"
+  if [[ "$POSTGRESQL_VERSION" == "9.6.2" ]]; then
+    echo "The minimum supported POSTGRESQL_VERSION is 9.6.16"
 
     exit 1
   fi
@@ -156,28 +174,28 @@ function install_postgresql() {
     debug_flag=('--debug')
   fi
 
-  local postgres_helm_values_args=()
-  local postgres_helm_values_file=${POSTGRES_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-postgres-values.yaml}
-  if [[ -f "${postgres_helm_values_file}" ]]; then
-    echo "Using PostgreSQL helm values file ${postgres_helm_values_file@Q}"
-    postgres_helm_values_args=(--values "${postgres_helm_values_file}")
+  local postgresql_helm_values_args=()
+  local postgresql_helm_values_file=${POSTGRESQL_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-postgresql-values.yaml}
+  if [[ -f "${postgresql_helm_values_file}" ]]; then
+    echo "Using PostgreSQL helm values file ${postgresql_helm_values_file@Q}"
+    postgresql_helm_values_args=(--values "${postgresql_helm_values_file}")
   else
-    echo "No PostgreSQL helm values file found at ${postgres_helm_values_file@Q}"
+    echo "No PostgreSQL helm values file found at ${postgresql_helm_values_file@Q}"
   fi
 
-  # shellcheck disable=SC2086 # POSTGRES_HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
+  # shellcheck disable=SC2086 # POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
   helm upgrade --install \
     --atomic \
     "${debug_flag[@]}" \
     --wait \
-    --version "${POSTGRES_CHART_VERSION}" \
+    --version "${POSTGRESQL_CHART_VERSION}" \
     --set fullnameOverride="$name" \
-    --set postgresqlUsername="$POSTGRES_USER" \
-    --set postgresqlPassword="$POSTGRES_PASSWORD" \
-    --set postgresqlDatabase="$POSTGRES_DB" \
-    --set image.tag="$POSTGRES_VERSION" \
-    "${postgres_helm_values_args[@]}" \
-    $POSTGRES_HELM_UPGRADE_EXTRA_ARGS \
+    --set postgresqlUsername="$POSTGRESQL_USER" \
+    --set postgresqlPassword="$POSTGRESQL_PASSWORD" \
+    --set postgresqlDatabase="$POSTGRESQL_DB" \
+    --set image.tag="$POSTGRESQL_VERSION" \
+    "${postgresql_helm_values_args[@]}" \
+    $POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS \
     --namespace="$KUBE_NAMESPACE" \
     "$name" \
     bitnami/postgresql
@@ -195,7 +213,7 @@ function deploy() {
   local stable_name
   stable_name=$(deploy_name stable)
 
-  if [[ "$POSTGRES_ENABLED" == "true" ]]; then
+  if [[ "$POSTGRESQL_ENABLED" == "true" ]]; then
     install_postgresql
   fi
 
@@ -291,7 +309,7 @@ function deploy() {
       chart/
   fi
 
-  echo "Deploying new $track release..."
+  echo "Deploying new ${track@Q} release..."
   # shellcheck disable=SC2086 # HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
   helm upgrade --install \
     "${atomic_flag[@]}" \
