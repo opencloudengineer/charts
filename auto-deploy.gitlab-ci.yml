@@ -62,7 +62,7 @@ staging:
     - auto-deploy deploy
   environment:
     name: staging
-    url: http://$CI_PROJECT_PATH_SLUG-staging.$KUBE_INGRESS_BASE_DOMAIN
+    url: http://$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG-staging.$KUBE_INGRESS_BASE_DOMAIN
   rules:
     - if: '$CI_KUBERNETES_ACTIVE == null || $CI_KUBERNETES_ACTIVE == ""'
       when: never
@@ -84,7 +84,7 @@ canary:
     - auto-deploy deploy canary
   environment:
     name: production
-    url: http://$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    url: http://$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
   rules:
     - if: '$CI_KUBERNETES_ACTIVE == null || $CI_KUBERNETES_ACTIVE == ""'
       when: never
@@ -106,7 +106,7 @@ canary:
     - auto-deploy persist_environment_url
   environment:
     name: production
-    url: http://$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    url: http://$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
   artifacts:
     paths: [environment_url.txt, tiller.log]
     when: always
@@ -152,7 +152,7 @@ production_manual:
     - auto-deploy persist_environment_url
   environment:
     name: production
-    url: http://$CI_PROJECT_PATH_SLUG.$KUBE_INGRESS_BASE_DOMAIN
+    url: http://$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG.$KUBE_INGRESS_BASE_DOMAIN
   artifacts:
     paths: [environment_url.txt, tiller.log]
     when: always
