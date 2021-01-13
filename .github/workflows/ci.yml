@@ -51,11 +51,19 @@ jobs:
           brew tap helm/tap
           brew install chart-releaser
 
+      - name: Install yq
+        run: |
+          sudo curl -sLo /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/download/v4.3.2/yq_linux_amd64 && \
+            sudo chmod +x /usr/local/bin/yq
+          yq -V
+
       - name: Conventional Changelog Action
         id: changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.github_token }}
+          pre-commit: preCommit.js
           version-file: ./chart/lambda/Chart.yaml
           version-path: version
           release-count: 0
