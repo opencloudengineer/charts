@@ -1,3 +1,13 @@
+## [0.3.1](https://github.com/opencloudengineer/lambda/compare/v0.3.0...v0.3.1) (2021-01-14)
+
+
+### Bug Fixes
+
+* configure auto_database_uri function to return URI for the DB passed as $1 ([54f8ae9](https://github.com/opencloudengineer/lambda/commit/54f8ae9ac0773ac65acdf9da51531c7ed12b5cd7))
+* use `$CI_PROJECT_ID-$CI_COMMIT_REF_SLUG` instead of `$CI_PROJECT_PATH_SLUG` in env:url ([725d987](https://github.com/opencloudengineer/lambda/commit/725d9873d73917ae1c878f2a5667eda8d549ae32))
+
+
+
 # [0.3.0](https://github.com/opencloudengineer/lambda/compare/v0.2.0...v0.3.0) (2021-01-13)
 
 
