@@ -1,3 +1,14 @@
+# [0.3.0](https://github.com/opencloudengineer/lambda/compare/v0.2.0...v0.3.0) (2021-01-13)
+
+
+### Features
+
+* add auto-deploy.gitlab-ci.yml & rm unnecessary code in auto-deploy ([c89e89d](https://github.com/opencloudengineer/lambda/commit/c89e89d88e7f58e99b56aee462f0d774ddda6749))
+* add preCommit logic to change docker image version in auto-deploy.gitlab-ci.yml upon new releases ([e853201](https://github.com/opencloudengineer/lambda/commit/e8532014c9277695c629e7845f7a9aeef213ac28))
+* set chart's & its app's version auto-deploy ([9d5f143](https://github.com/opencloudengineer/lambda/commit/9d5f14362c8bab7d35698c8dad3858c467329ae1))
+
+
+
 # [0.2.0](https://github.com/opencloudengineer/lambda/compare/v0.1.0...v0.2.0) (2021-01-10)
 
 
