@@ -7,23 +7,25 @@ set -e
 export AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE=/tmp/auto-deploy-environment-values.yaml
 export RELEASE_NAME=${HELM_RELEASE_NAME:-$CI_ENVIRONMENT_SLUG}
 
-export POSTGRESQL_VERSION=${POSTGRESQL_VERSION:-"11.10.0"};
-export REDIS_VERSION=${REDIS_VERSION:-"6.0.9"};
-export MYSQL_VERSION=${MYSQL_VERSION:-"8.0.22"};
-export MONGODB_VERSION=${MONGODB_VERSION:-"4.4.3"};
-export MARIADB_VERSION=${MARIADB_VERSION:-"10.5.8"};
+export POSTGRESQL_VERSION=${POSTGRESQL_VERSION:-"11.10.0"}
+export REDIS_VERSION=${REDIS_VERSION:-"6.0.9"}
+export MYSQL_VERSION=${MYSQL_VERSION:-"8.0.22"}
+export MONGODB_VERSION=${MONGODB_VERSION:-"4.4.3"}
+export MARIADB_VERSION=${MARIADB_VERSION:-"10.5.8"}
 
-export POSTGRESQL_CHART_VERSION=${POSTGRESQL_CHART_VERSION:-"10.2.1"};
-export REDIS_CHART_VERSION=${REDIS_CHART_VERSION:-"12.4.0"};
-export MYSQL_CHART_VERSION=${MYSQL_CHART_VERSION:-"8.2.4"};
-export MONGODB_CHART_VERSION=${MONGODB_CHART_VERSION:-"10.3.6"};
-export MARIADB_CHART_VERSION=${MARIADB_CHART_VERSION:-"9.2.2"};
+export POSTGRESQL_CHART_VERSION=${POSTGRESQL_CHART_VERSION:-"10.2.1"}
+export REDIS_CHART_VERSION=${REDIS_CHART_VERSION:-"12.4.0"}
+export MYSQL_CHART_VERSION=${MYSQL_CHART_VERSION:-"8.2.4"}
+export MONGODB_CHART_VERSION=${MONGODB_CHART_VERSION:-"10.3.6"}
+export MARIADB_CHART_VERSION=${MARIADB_CHART_VERSION:-"9.2.2"}
 
 APPS=(mariadb mongodb mysql redis postgresql)
 for i in "${APPS[@]}"; do
-  source <(echo "
-    export ${i^^}_RELEASE_NAME=${RELEASE_NAME}-${i};
-    "  
+  # shellcheck disable=SC1090
+  source <(
+    cat <<EOF
+    export ${i^^}_RELEASE_NAME="${RELEASE_NAME}-${i}";
+EOF
   )
 done
 
@@ -143,16 +145,40 @@ function create_secret() {
     -o yaml --dry-run | kubectl replace -n "$KUBE_NAMESPACE" --force -f -
 }
 
-# shellcheck disable=SC2086
 function persist_environment_url() {
-  echo $CI_ENVIRONMENT_URL >environment_url.txt
+  echo "${CI_ENVIRONMENT_URL}" >environment_url.txt
 }
 
-function auto_database_url() {
-  local auto_database_url
-  auto_database_url="postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_RELEASE_NAME}:5432/${POSTGRESQL_DB}"
+function auto_database_uri() {
 
-  echo "${DATABASE_URL-$auto_database_url}"
+  db=$1
+  case $db in
+
+  mariadb)
+    uri="jdbc:mysql://${MARIADB_RELEASE_NAME}:3306/${MARIADB_DB}?username=${MARIADB_USER}&password=${MARIADB_PASSWORD}"
+    echo "${MYSQL_URI-$uri}"
+    ;;
+  mongodb)
+    uri="mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_RELEASE_NAME}:27017/${MONGODB_DB}"
+    echo "${MONGODB_URI-$uri}"
+    ;;
+  mysql)
+    uri="jdbc:mysql://${MYSQL_RELEASE_NAME}:3306/${MYSQL_DB}?username=${MYSQL_USER}&password=${MYSQL_PASSWORD}"
+    echo "${MYSQL_URI-$uri}"
+    ;;
+  redis)
+    uri="redis://${REDIS_RELEASE_NAME}:6379?password=${REDIS_PASSWORD}"
+    echo "${REDIS_URI-$uri}"
+    ;;
+  postgresql)
+    uri="postgres://${POSTGRESQL_USER}:${POSTGRESQL_PASSWORD}@${POSTGRESQL_RELEASE_NAME}:5432/${POSTGRESQL_DB}"
+    echo "${POSTGRESQL_URI-$uri}"
+    ;;
+  *)
+    echo ""
+    ;;
+
+  esac
 }
 
 function install_postgresql() {
@@ -215,9 +241,16 @@ function deploy() {
 
   validate-chart-version "$(helm list --namespace "$KUBE_NAMESPACE" --output json)" "chart" "$name"
 
-  local database_url
-  database_url=$(auto_database_url)
+  for i in "${APPS[@]}"; do
 
+    # shellcheck disable=SC1090
+    source <(
+      cat <<EOF
+      local ${i}_uri;
+      ${i}_uri=$(auto_database_uri "${i}")
+EOF
+    )
+  done
   local image_repository
   local image_tag
 
@@ -486,7 +519,7 @@ download_chart) download_chart ;;
 ensure_namespace) ensure_namespace ;;
 create_secret) create_secret ;;
 persist_environment_url) persist_environment_url ;;
-auto_database_url) auto_database_url ;;
+auto_database_uri) auto_database_uri ;;
 install_postgresql) install_postgresql "${@:2}" ;;
 deploy) deploy "${@:2}" ;;
 scale) scale "${@:2}" ;;

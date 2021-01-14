@@ -22,7 +22,7 @@ dependencies:
     version: 9.2.x
     repository: "https://charts.bitnami.com/bitnami"
     condition: mariadb.enabled
-description: Helm Chart for deploying an app with MySql, MariaDB, Postgres, MongoDB and/or Redis
+description: Helm Chart for creating an deployment, daemonset or statefulset of an app
 engine: gotpl
 home: https://github.com/opencloudengineer/lambda/tree/main/chart/lambda
 icon: https://helm.sh/img/helm.svg
