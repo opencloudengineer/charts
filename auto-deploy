@@ -84,7 +84,6 @@ function download_chart() {
 
 function add_chart_repositories() {
   helm repo add stable https://charts.helm.sh/stable
-  # bitnami repository is used for in-cluster PostgreSQL installation.
   helm repo add bitnami https://charts.bitnami.com/bitnami
   # Additionaly, users can specify their custom chart repository.
   add_custom_chart_repository
@@ -198,12 +197,6 @@ function auto_database_uri() {
 }
 
 function install_postgresql() {
-
-  if [[ "$POSTGRESQL_VERSION" == "9.6.2" ]]; then
-    echo "The minimum supported POSTGRESQL_VERSION is 9.6.16"
-
-    exit 1
-  fi
 
   local name="$POSTGRESQL_RELEASE_NAME"
 
