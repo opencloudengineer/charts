@@ -4,6 +4,31 @@ entries:
   - annotations:
       category: FullStack
     apiVersion: v2
+    created: "2021-01-15T23:02:08.327330119Z"
+    description: Helm Chart for creating an deployment, daemonset or statefulset of an app
+    digest: 2eb5b046d45baff1dc58d89b26971213269ec9dcb54499b2f97ed079ab5f322b
+    home: https://github.com/opencloudengineer/lambda/tree/main/chart/lambda
+    icon: https://helm.sh/img/helm.svg
+    keywords:
+    - REST
+    - GraphQL
+    - gRPC
+    - deployments
+    - daemonsets
+    - statefulsets
+    maintainers:
+    - email: serverlessengineer@gmail.com
+      name: opencloudengineer
+    name: lambda
+    sources:
+    - https://helm.sh/docs/topics/charts
+    - https://gitlab.com/gitlab-org/cluster-integration/auto-deploy-image/-/tree/master/assets/auto-deploy-app
+    urls:
+    - https://github.com/opencloudengineer/lambda/releases/download/v0.4.0/lambda-0.4.0.tgz
+    version: 0.4.0
+  - annotations:
+      category: FullStack
+    apiVersion: v2
     created: "2021-01-14T01:06:49.762921388Z"
     dependencies:
     - condition: mysql.enabled
