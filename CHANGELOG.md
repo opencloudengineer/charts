@@ -1,3 +1,19 @@
+# [0.4.0](https://github.com/opencloudengineer/lambda/compare/v0.3.1...v0.4.0) (2021-01-15)
+
+
+### Bug Fixes
+
+* if `application.*db_uri` is null then don't create a env var `*DB_URI` for it in Pod ([2b37dfb](https://github.com/opencloudengineer/lambda/commit/2b37dfbddd71c0027be7a6517df4ff6970aa01bf))
+* remove Chart.lock as dependent charts will be handled/installed separately ([dd09ec0](https://github.com/opencloudengineer/lambda/commit/dd09ec0591377bb50a611b8f61370b05922a3fdd))
+
+
+### Features
+
+* use yq to generate the dynamic values.yaml in `write_environment_values_file` function ([2f4fee1](https://github.com/opencloudengineer/lambda/commit/2f4fee1a10cac60d3580773a0ef2e171d3d0fd91))
+* yq in docker image ([b05a559](https://github.com/opencloudengineer/lambda/commit/b05a5594b6002199f2c6077aed7abb2f63084e19))
+
+
+
 ## [0.3.1](https://github.com/opencloudengineer/lambda/compare/v0.3.0...v0.3.1) (2021-01-14)
 
 
