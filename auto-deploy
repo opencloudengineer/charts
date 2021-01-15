@@ -112,37 +112,47 @@ function add_custom_chart_repository() {
 }
 
 function ensure_namespace() {
-  kubectl get namespace "$KUBE_NAMESPACE" || kubectl create namespace "$KUBE_NAMESPACE"
+  kubectl get namespace "${KUBE_NAMESPACE}" || kubectl create namespace "${KUBE_NAMESPACE}"
 }
 
 function write_environment_values_file() {
 
   export GITLAB_CI=${GITLAB_CI:-false}
   if test "${GITLAB_CI}" == "true"; then
-    echo "gitlab: true" >"$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE"
+    yq eval --null-input '.gitlab = true' >"${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
   fi
+
+  for i in "${APPS[@]}"; do
+
+    # shellcheck disable=SC1090
+    source <(
+      cat <<EOF
+      yq eval '.application.${i}_uri = env(${i}_uri)' -i "${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
+EOF
+    )
+  done
 
   # Helm 3 does not like `--set image.secrets[0]=""`
   if [[ "$CI_PROJECT_VISIBILITY" != "public" ]]; then
-    echo "image: { secrets: [ { name: gitlab-registry-${CI_PROJECT_PATH_SLUG} } ] }" >>$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE
+    yq eval '.image.secrets[0].name = "gitlab-registry-"+env(CI_PROJECT_PATH_SLUG)' -i "${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
   else
-    echo "image: { secrets: null }" >>$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE
+    yq eval '.image.secrets = null' -i "${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
   fi
 }
 
 function create_secret() {
   echo "Create secret..."
-  if [[ "$CI_PROJECT_VISIBILITY" == "public" ]]; then
+  if [[ "${CI_PROJECT_VISIBILITY}" == "public" ]]; then
     return
   fi
 
-  kubectl create secret -n "$KUBE_NAMESPACE" \
+  kubectl create secret -n "${KUBE_NAMESPACE}" \
     docker-registry "gitlab-registry-${CI_PROJECT_PATH_SLUG}" \
-    --docker-server="$CI_REGISTRY" \
+    --docker-server="${CI_REGISTRY}" \
     --docker-username="${CI_DEPLOY_USER:-$CI_REGISTRY_USER}" \
     --docker-password="${CI_DEPLOY_PASSWORD:-$CI_REGISTRY_PASSWORD}" \
-    --docker-email="$GITLAB_USER_EMAIL" \
-    -o yaml --dry-run | kubectl replace -n "$KUBE_NAMESPACE" --force -f -
+    --docker-email="${GITLAB_USER_EMAIL}" \
+    -o yaml --dry-run | kubectl replace -n "${KUBE_NAMESPACE}" --force -f -
 }
 
 function persist_environment_url() {
@@ -151,8 +161,14 @@ function persist_environment_url() {
 
 function auto_database_uri() {
 
-  db=$1
-  case $db in
+  # this function gets called for a DB only if DB_ENABLED is true
+
+  # if DB_ENABLED is true & DB_URI is set by user
+  # then we will provision the DB
+  # but DB_URI will still contain the value set by user
+
+  db=${1}
+  case ${db} in
 
   mariadb)
     uri="jdbc:mysql://${MARIADB_RELEASE_NAME}:3306/${MARIADB_DB}?username=${MARIADB_USER}&password=${MARIADB_PASSWORD}"
@@ -218,7 +234,7 @@ function install_postgresql() {
     --set image.tag="$POSTGRESQL_VERSION" \
     "${postgresql_helm_values_args[@]}" \
     $POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS \
-    --namespace="$KUBE_NAMESPACE" \
+    --namespace="${KUBE_NAMESPACE}" \
     "$name" \
     bitnami/postgresql
 }
@@ -239,15 +255,24 @@ function deploy() {
     install_postgresql
   fi
 
-  validate-chart-version "$(helm list --namespace "$KUBE_NAMESPACE" --output json)" "chart" "$name"
+  validate-chart-version "$(helm list --namespace "${KUBE_NAMESPACE}" --output json)" "chart" "$name"
 
   for i in "${APPS[@]}"; do
 
     # shellcheck disable=SC1090
     source <(
       cat <<EOF
-      local ${i}_uri;
-      ${i}_uri=$(auto_database_uri "${i}")
+      if [[ \${${i^^}_ENABLED} == "true" ]]; then
+        ${i}_uri=$(auto_database_uri "${i}")
+        export ${i}_uri;
+      elif [[ -v ${i^^}_URI ]]; then
+        # if DB_URI is passed by user then set it in pod
+        ${i}_uri=\${${i^^}_URI}
+        export ${i}_uri;
+      fi
+      # if DB_ENABLED is true & DB_URI is set by user
+      # then we will provision the DB
+      # but DB_URI will still contain the value set by user
 EOF
     )
   done
@@ -305,7 +330,7 @@ EOF
   # TODO: Over time, migrate all --set values to this file, see https://gitlab.com/gitlab-org/cluster-integration/auto-deploy-image/-/issues/31
   write_environment_values_file
 
-  if [[ -n "$DB_INITIALIZE" && -z "$(helm ls --namespace "$KUBE_NAMESPACE" -q -f "^$stable_name$")" ]]; then
+  if [[ -n "$DB_INITIALIZE" && -z "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^$stable_name$")" ]]; then
     echo "Initializing service URL and database. No deployment will be created"
     # shellcheck disable=SC2086 # HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
     helm upgrade --install \
@@ -320,7 +345,6 @@ EOF
       --set image.repository="$image_repository" \
       --set-string image.tag="$image_tag" \
       --set application.track="stable" \
-      --set application.database_url="$database_url" \
       --set application.secretName="$APPLICATION_SECRET_NAME" \
       --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
       --set service.commonName="le-$CI_PROJECT_ID.$KUBE_INGRESS_BASE_DOMAIN" \
@@ -333,7 +357,7 @@ EOF
       --values "$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE" \
       "${helm_values_args[@]}" \
       $HELM_UPGRADE_EXTRA_ARGS \
-      --namespace="$KUBE_NAMESPACE" \
+      --namespace="${KUBE_NAMESPACE}" \
       "$stable_name" \
       chart/
   fi
@@ -352,7 +376,6 @@ EOF
     --set image.repository="$image_repository" \
     --set-string image.tag="$image_tag" \
     --set application.track="$track" \
-    --set application.database_url="$database_url" \
     --set application.secretName="$APPLICATION_SECRET_NAME" \
     --set application.secretChecksum="$APPLICATION_SECRET_CHECKSUM" \
     --set service.commonName="le-$CI_PROJECT_ID.$KUBE_INGRESS_BASE_DOMAIN" \
@@ -366,12 +389,12 @@ EOF
     --values "$AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE" \
     "${helm_values_args[@]}" \
     $HELM_UPGRADE_EXTRA_ARGS \
-    --namespace="$KUBE_NAMESPACE" \
+    --namespace="${KUBE_NAMESPACE}" \
     "$name" \
     chart/
 
   if [[ -z "$ROLLOUT_STATUS_DISABLED" ]]; then
-    kubectl rollout status -n "$KUBE_NAMESPACE" -w "$ROLLOUT_RESOURCE_TYPE/$name"
+    kubectl rollout status -n "${KUBE_NAMESPACE}" -w "$ROLLOUT_RESOURCE_TYPE/$name"
   fi
 }
 
@@ -384,12 +407,12 @@ function scale() {
   local replicas
   replicas=$(get_replicas "$track")
 
-  if [[ -n "$(helm ls --namespace "$KUBE_NAMESPACE" -q -f "^$name$")" ]]; then
+  if [[ -n "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^$name$")" ]]; then
     helm upgrade --reuse-values \
       --wait \
       --set replicaCount="$replicas" \
       --set ingress.canary.weight="${percentage}" \
-      --namespace="$KUBE_NAMESPACE" \
+      --namespace="${KUBE_NAMESPACE}" \
       "$name" \
       chart/
   fi
@@ -398,9 +421,9 @@ function scale() {
 function delete_postgresql() {
   local name="$POSTGRESQL_RELEASE_NAME"
 
-  if [[ -n "$(helm ls --namespace "$KUBE_NAMESPACE" -q -f "^$name$")" ]]; then
-    helm delete "$name" --namespace "$KUBE_NAMESPACE"
-    kubectl delete pvc -n "$KUBE_NAMESPACE" -l "release=$POSTGRESQL_RELEASE_NAME"
+  if [[ -n "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^$name$")" ]]; then
+    helm delete "$name" --namespace "${KUBE_NAMESPACE}"
+    kubectl delete pvc -n "${KUBE_NAMESPACE}" -l "release=$POSTGRESQL_RELEASE_NAME"
   fi
 }
 
@@ -410,8 +433,8 @@ function delete() {
   local name
   name=$(deploy_name "$track")
 
-  if [[ -n "$(helm ls --namespace "$KUBE_NAMESPACE" -q -f "^$name$")" ]]; then
-    helm delete "$name" --namespace "$KUBE_NAMESPACE"
+  if [[ -n "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^$name$")" ]]; then
+    helm delete "$name" --namespace "${KUBE_NAMESPACE}"
   fi
 
   if [[ "$track" == "stable" ]]; then
@@ -421,7 +444,7 @@ function delete() {
   local secret_name
   secret_name=$(application_secret_name "$track")
 
-  kubectl delete secret --ignore-not-found -n "$KUBE_NAMESPACE" "$secret_name"
+  kubectl delete secret --ignore-not-found -n "${KUBE_NAMESPACE}" "$secret_name"
 }
 
 ## Helper functions
@@ -450,7 +473,7 @@ function create_application_secret() {
 
   auto-deploy-application-secrets-yaml "$k8s_secrets_file"
 
-  kubectl replace -f "$k8s_secrets_file" -n "$KUBE_NAMESPACE" --force
+  kubectl replace -f "$k8s_secrets_file" -n "${KUBE_NAMESPACE}" --force
 
   # shellcheck disable=SC2002 # useless cat, prefer cmd < file
   # shellcheck disable=SC2155 # declare and assign separately to avoid masking return values.
