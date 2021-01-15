@@ -62,16 +62,26 @@ items:
               name: {{ $.Values.application.secretName }}
           {{- end }}
           env:
+          {{- if $.Values.application.postgresql_uri }}
           - name: POSTGRESQL_URI
             value: {{ $.Values.application.postgresql_uri | quote }}
+          {{- end}}
+          {{- if $.Values.application.redis_uri }}
           - name: REDIS_URI
             value: {{ $.Values.application.redis_uri | quote }}
+          {{- end }}
+          {{- if $.Values.application.mysql_uri }}
           - name: MYSQL_URI
             value: {{ $.Values.application.mysql_uri | quote }}
+          {{- end }}
+          {{- if $.Values.application.mariadb_uri }}
           - name: MARIADB_URI
             value: {{ $.Values.application.mariadb_uri | quote }}
+          {{- end }}
+          {{- if $.Values.application.mongodb_uri }}
           - name: MONGODB_URI
             value: {{ $.Values.application.mongodb_uri | quote }}
+          {{- end }}
           - name: ENVIRONMENT_NAME
             value: {{ $.Values.project.env | quote }}
 {{- with $livenessProbeConfig := default $.Values.livenessProbe $workerConfig.livenessProbe -}}

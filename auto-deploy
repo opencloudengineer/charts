@@ -168,7 +168,7 @@ function auto_database_uri() {
   # but DB_URI will still contain the value set by user
 
   db=${1}
-  case ${db} in
+  case "${db}" in
 
   mariadb)
     uri="jdbc:mysql://${MARIADB_RELEASE_NAME}:3306/${MARIADB_DB}?username=${MARIADB_USER}&password=${MARIADB_PASSWORD}"
