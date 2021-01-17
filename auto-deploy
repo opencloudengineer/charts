@@ -196,40 +196,82 @@ function auto_database_uri() {
   esac
 }
 
-function install_postgresql() {
+function install_app() {
 
-  local name="$POSTGRESQL_RELEASE_NAME"
+  local name="${!2}"
 
   local debug_flag=()
   if [[ -n "$AUTO_DEVOPS_DEPLOY_DEBUG" ]]; then
     debug_flag=('--debug')
   fi
 
-  local postgresql_helm_values_args=()
-  local postgresql_helm_values_file=${POSTGRESQL_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-postgresql-values.yaml}
-  if [[ -f "${postgresql_helm_values_file}" ]]; then
-    echo "Using PostgreSQL helm values file ${postgresql_helm_values_file@Q}"
-    postgresql_helm_values_args=(--values "${postgresql_helm_values_file}")
-  else
-    echo "No PostgreSQL helm values file found at ${postgresql_helm_values_file@Q}"
+  if [[ "${MARIADB_ENABLED}" == "true" ]]; then
+
+    yq eval --null-input '.auth.database= env(MARIADB_DB)' >mariadb-specific-values.yaml
+    yq eval '.auth.username = env(MARIADB_USER)' -i mariadb-specific-values.yaml
+    yq eval '.auth.password = env(MARIADB_PASSWORD)' -i mariadb-specific-values.yaml
+    yq eval '.auth.rootPassword = env(MARIADB_ROOT_PASSWORD)' -i mariadb-specific-values.yaml
+
+    #metrics.enabled: true
+    #rbac.create=true
+    #architecture: replication
+    #secondary.replicaCount: 2
+    #auth.forcePassword: true
+    #auth.usePasswordFiles: true
+  fi
+  if [[ "${MYSQL_ENABLED}" == "true" ]]; then
+    yq eval --null-input '.auth.database= env(MYSQL_DB)' >mysql-specific-values.yaml
+    yq eval '.auth.username = env(MYSQL_USER)' -i mysql-specific-values.yaml
+    yq eval '.auth.password = env(MYSQL_PASSWORD)' -i mysql-specific-values.yaml
+    yq eval '.auth.rootPassword = env(MYSQL_ROOT_PASSWORD)' -i mysql-specific-values.yaml
   fi
 
-  # shellcheck disable=SC2086 # POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
-  helm upgrade --install \
-    --atomic \
-    "${debug_flag[@]}" \
-    --wait \
-    --version "${POSTGRESQL_CHART_VERSION}" \
-    --set fullnameOverride="$name" \
-    --set postgresqlUsername="$POSTGRESQL_USER" \
-    --set postgresqlPassword="$POSTGRESQL_PASSWORD" \
-    --set postgresqlDatabase="$POSTGRESQL_DB" \
-    --set image.tag="$POSTGRESQL_VERSION" \
-    "${postgresql_helm_values_args[@]}" \
-    $POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS \
-    --namespace="${KUBE_NAMESPACE}" \
-    "$name" \
-    bitnami/postgresql
+  if [[ "${POSTGRESQL_ENABLED}" == "true" ]]; then
+
+    yq eval --null-input '.postgresqlDatabase = env(POSTGRESQL_DB)' >postgresql-specific-values.yaml
+    yq eval '.postgresqlUsername = env(POSTGRESQL_USER)' -i postgresql-specific-values.yaml
+    yq eval '.postgresqlPassword = env(POSTGRESQL_PASSWORD)' -i postgresql-specific-values.yaml
+    yq eval '.postgresqlPostgresPassword = env(POSTGRESQL_ROOT_PASSWORD)' -i postgresql-specific-values.yaml
+
+    #metrics.enabled
+    #rbac.create
+    #replication.enabled: true
+    #replication.readReplicas: 2
+    #replication.synchronousCommit: "on"
+    #replication.numSynchronousReplicas: 1
+    #usePasswordFile
+  fi
+
+  # shellcheck disable=SC1090
+  source <(
+    cat <<EOF
+    local ${i}_helm_values_args=()
+    local ${i}_helm_values_file=\${${i^^}_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-${i}-values.yaml}
+    if [[ -f "\${${i}_helm_values_file}" ]]; then
+      echo "Using ${i^^} helm values file \${${i}_helm_values_file@Q}"
+      ${i}_helm_values_args=(--values "\${${i}_helm_values_file}")
+    else
+      echo "No ${i^^} helm values file found at \${${i}_helm_values_file@Q}"
+    fi
+
+    # shellcheck disable=SC2086 # POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
+    helm upgrade --install \
+      --atomic \
+      "\${debug_flag[@]}" \
+      --wait \
+      --version "\${${i^^}_CHART_VERSION}" \
+      --set fullnameOverride="$name" \
+      --set ${i}Username="\${${i^^}_USER}" \
+      --set ${i}Password="\${${i^^}_PASSWORD}" \
+      --set ${i}Database="\${${i^^}_DB}" \
+      --set image.tag="\${${i^^}_VERSION}" \
+      "\${${i}_helm_values_args[@]}" \
+      \${${i^^}_HELM_UPGRADE_EXTRA_ARGS} \
+      --namespace="${KUBE_NAMESPACE}" \
+      "$name" \
+      "bitnami/${i}"
+EOF
+  )
 }
 
 # shellcheck disable=SC2153 # warns that my_var vs MY_VAR is a possible misspelling
@@ -244,9 +286,17 @@ function deploy() {
   local stable_name
   stable_name=$(deploy_name stable)
 
-  if [[ "$POSTGRESQL_ENABLED" == "true" ]]; then
-    install_postgresql
-  fi
+  for i in "${APPS[@]}"; do
+
+    # shellcheck disable=SC1090
+    source <(
+      cat <<EOF
+      if [[ "\${${i^^}_ENABLED}" == "true" ]]; then
+        install_app "${i}" "${i^^}_RELEASE_NAME"
+      fi
+EOF
+    )
+  done
 
   validate-chart-version "$(helm list --namespace "${KUBE_NAMESPACE}" --output json)" "chart" "$name"
 
@@ -411,12 +461,12 @@ function scale() {
   fi
 }
 
-function delete_postgresql() {
-  local name="$POSTGRESQL_RELEASE_NAME"
+function delete_app() {
+  local name="${!2}"
 
-  if [[ -n "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^$name$")" ]]; then
-    helm delete "$name" --namespace "${KUBE_NAMESPACE}"
-    kubectl delete pvc -n "${KUBE_NAMESPACE}" -l "release=$POSTGRESQL_RELEASE_NAME"
+  if [[ -n "$(helm ls --namespace "${KUBE_NAMESPACE}" -q -f "^${name}$")" ]]; then
+    helm delete "${name}" --namespace "${KUBE_NAMESPACE}"
+    kubectl delete pvc -n "${KUBE_NAMESPACE}" -l "release=${name}"
   fi
 }
 
@@ -430,9 +480,13 @@ function delete() {
     helm delete "$name" --namespace "${KUBE_NAMESPACE}"
   fi
 
-  if [[ "$track" == "stable" ]]; then
-    delete_postgresql
-  fi
+  for i in "${APPS[@]}"; do
+
+    if [[ "$track" == "stable" ]]; then
+      delete_app "${i}" "${i^^}_RELEASE_NAME"
+    fi
+
+  done
 
   local secret_name
   secret_name=$(application_secret_name "$track")
@@ -536,7 +590,7 @@ ensure_namespace) ensure_namespace ;;
 create_secret) create_secret ;;
 persist_environment_url) persist_environment_url ;;
 auto_database_uri) auto_database_uri ;;
-install_postgresql) install_postgresql "${@:2}" ;;
+install_app) install_app "${@:2}" ;;
 deploy) deploy "${@:2}" ;;
 scale) scale "${@:2}" ;;
 delete) delete "${@:2}" ;;
