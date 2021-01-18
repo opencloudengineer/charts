@@ -2,10 +2,11 @@
 
 set -e
 
-[[ "$TRACE" ]] && set -x
+[[ "${TRACE}" ]] &&
+  set -x
 
 export AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE=/tmp/auto-deploy-environment-values.yaml
-export RELEASE_NAME=${HELM_RELEASE_NAME:-$CI_ENVIRONMENT_SLUG}
+export RELEASE_NAME=${HELM_RELEASE_NAME:-${CI_ENVIRONMENT_SLUG}}
 
 export POSTGRESQL_VERSION=${POSTGRESQL_VERSION:-"11.10.0"}
 export REDIS_VERSION=${REDIS_VERSION:-"6.0.9"}
@@ -25,6 +26,10 @@ for i in "${APPS[@]}"; do
   source <(
     cat <<EOF
     export ${i^^}_RELEASE_NAME="${RELEASE_NAME}-${i}";
+    export ${i^^}_DB="\${${i^^}_DB:-${RELEASE_NAME}}"
+    export ${i^^}_USER="\${${i^^}_USER:-${RELEASE_NAME}}"
+    export ${i^^}_PASSWORD="\${${i^^}_PASSWORD:-${RELEASE_NAME}}"
+    export ${i^^}_ROOT_PASSWORD="\${${i^^}_ROOT_PASSWORD:-${RELEASE_NAME}}"
 EOF
   )
 done
@@ -111,7 +116,8 @@ function add_custom_chart_repository() {
 }
 
 function ensure_namespace() {
-  kubectl get namespace "${KUBE_NAMESPACE}" || kubectl create namespace "${KUBE_NAMESPACE}"
+  kubectl get namespace "${KUBE_NAMESPACE}" ||
+    kubectl create namespace "${KUBE_NAMESPACE}"
 }
 
 function write_environment_values_file() {
@@ -160,11 +166,11 @@ function persist_environment_url() {
 
 function auto_database_uri() {
 
-  # this function gets called for a DB only if DB_ENABLED is true
+  # this function gets called for a DB only if *DB_ENABLED is true
 
-  # if DB_ENABLED is true & DB_URI is set by user
+  # if *DB_ENABLED is true & *DB_URI is set by user
   # then we will provision the DB
-  # but DB_URI will still contain the value set by user
+  # but *DB_URI will still contain the value set by user
 
   db=${1}
   case "${db}" in
@@ -206,40 +212,31 @@ function install_app() {
   fi
 
   if [[ "${MARIADB_ENABLED}" == "true" ]]; then
-
-    yq eval --null-input '.auth.database= env(MARIADB_DB)' >mariadb-specific-values.yaml
+    yq eval --null-input '.auth.database = env(MARIADB_DB)' >mariadb-specific-values.yaml
     yq eval '.auth.username = env(MARIADB_USER)' -i mariadb-specific-values.yaml
     yq eval '.auth.password = env(MARIADB_PASSWORD)' -i mariadb-specific-values.yaml
     yq eval '.auth.rootPassword = env(MARIADB_ROOT_PASSWORD)' -i mariadb-specific-values.yaml
-
-    #metrics.enabled: true
-    #rbac.create=true
-    #architecture: replication
-    #secondary.replicaCount: 2
-    #auth.forcePassword: true
-    #auth.usePasswordFiles: true
   fi
   if [[ "${MYSQL_ENABLED}" == "true" ]]; then
-    yq eval --null-input '.auth.database= env(MYSQL_DB)' >mysql-specific-values.yaml
+    yq eval --null-input '.auth.database = env(MYSQL_DB)' >mysql-specific-values.yaml
     yq eval '.auth.username = env(MYSQL_USER)' -i mysql-specific-values.yaml
     yq eval '.auth.password = env(MYSQL_PASSWORD)' -i mysql-specific-values.yaml
     yq eval '.auth.rootPassword = env(MYSQL_ROOT_PASSWORD)' -i mysql-specific-values.yaml
   fi
-
+  if [[ "${REDIS_ENABLED}" == "true" ]]; then
+    yq eval --null-input '.password = env(REDIS_PASSWORD)' >redis-specific-values.yaml
+  fi
+  if [[ "${MONGODB_ENABLED}" == "true" ]]; then
+    yq eval --null-input '.auth.database = env(MONGODB_DB)' >mongodb-specific-values.yaml
+    yq eval '.auth.username = env(MONGODB_USER)' -i mongodb-specific-values.yaml
+    yq eval '.auth.password = env(MONGODB_PASSWORD)' -i mongodb-specific-values.yaml
+    yq eval '.auth.rootPassword = env(MONGODB_ROOT_PASSWORD)' -i mongodb-specific-values.yaml
+  fi
   if [[ "${POSTGRESQL_ENABLED}" == "true" ]]; then
-
     yq eval --null-input '.postgresqlDatabase = env(POSTGRESQL_DB)' >postgresql-specific-values.yaml
     yq eval '.postgresqlUsername = env(POSTGRESQL_USER)' -i postgresql-specific-values.yaml
     yq eval '.postgresqlPassword = env(POSTGRESQL_PASSWORD)' -i postgresql-specific-values.yaml
     yq eval '.postgresqlPostgresPassword = env(POSTGRESQL_ROOT_PASSWORD)' -i postgresql-specific-values.yaml
-
-    #metrics.enabled
-    #rbac.create
-    #replication.enabled: true
-    #replication.readReplicas: 2
-    #replication.synchronousCommit: "on"
-    #replication.numSynchronousReplicas: 1
-    #usePasswordFile
   fi
 
   # shellcheck disable=SC1090
@@ -261,10 +258,8 @@ function install_app() {
       --wait \
       --version "\${${i^^}_CHART_VERSION}" \
       --set fullnameOverride="$name" \
-      --set ${i}Username="\${${i^^}_USER}" \
-      --set ${i}Password="\${${i^^}_PASSWORD}" \
-      --set ${i}Database="\${${i^^}_DB}" \
       --set image.tag="\${${i^^}_VERSION}" \
+      --values "${i}-specific-values.yaml" \
       "\${${i}_helm_values_args[@]}" \
       \${${i^^}_HELM_UPGRADE_EXTRA_ARGS} \
       --namespace="${KUBE_NAMESPACE}" \
@@ -309,13 +304,13 @@ EOF
         ${i}_uri=$(auto_database_uri "${i}")
         export ${i}_uri;
       elif [[ -v ${i^^}_URI ]]; then
-        # if DB_URI is passed by user then set it in pod
+        # if *DB_URI is passed by user then set it in pod
         ${i}_uri=\${${i^^}_URI}
         export ${i}_uri;
       fi
-      # if DB_ENABLED is true & DB_URI is set by user
+      # if *DB_ENABLED is true & *DB_URI is set by user
       # then we will provision the DB
-      # but DB_URI will still contain the value set by user
+      # but *DB_URI will still contain the value set by user
 EOF
     )
   done
