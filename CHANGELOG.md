@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/opencloudengineer/lambda/compare/v0.5.0...v0.5.1) (2021-01-18)
+
+
+### Bug Fixes
+
+* write `application.*db_uri` to `${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}` only if `*DB_ENABLED` is true ([9c58d0d](https://github.com/opencloudengineer/lambda/commit/9c58d0dbbf82e7e9aa0b5b789af1a3119dccf650))
+
+
+
 # [0.5.0](https://github.com/opencloudengineer/lambda/compare/v0.4.0...v0.5.0) (2021-01-18)
 
 
