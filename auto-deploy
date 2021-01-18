@@ -132,7 +132,9 @@ function write_environment_values_file() {
     # shellcheck disable=SC1090
     source <(
       cat <<EOF
-      yq eval '.application.${i}_uri = env(${i}_uri)' -i "${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
+      if [[ "\${${i^^}_ENABLED}" == "true" ]]; then
+        yq eval '.application.${i}_uri = env(${i}_uri)' -i "${AUTO_DEPLOY_ENVIRONMENT_VALUES_FILE}"
+      fi
 EOF
     )
   done
