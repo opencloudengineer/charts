@@ -1,3 +1,13 @@
+# [0.5.0](https://github.com/opencloudengineer/lambda/compare/v0.4.0...v0.5.0) (2021-01-18)
+
+
+### Features
+
+* setup install_app function to install DB helm charts of choice ([4a1fbc0](https://github.com/opencloudengineer/lambda/commit/4a1fbc0c206a28eb62668c025f68a297ab691fee))
+* setup Redis & MongoDB specific dynamic helm values ([e620b2c](https://github.com/opencloudengineer/lambda/commit/e620b2cf72b23abe0305b244424365f374404d1a))
+
+
+
 # [0.4.0](https://github.com/opencloudengineer/lambda/compare/v0.3.1...v0.4.0) (2021-01-15)
 
 
