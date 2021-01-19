@@ -303,7 +303,7 @@ EOF
     source <(
       cat <<EOF
       if [[ \${${i^^}_ENABLED} == "true" ]]; then
-        ${i}_uri=$(auto_database_uri "${i}")
+        ${i}_uri=\$(auto_database_uri "${i}")
         export ${i}_uri;
       elif [[ -v ${i^^}_URI ]]; then
         # if *DB_URI is passed by user then set it in pod
