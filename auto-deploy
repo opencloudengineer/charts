@@ -244,13 +244,13 @@ function install_app() {
   # shellcheck disable=SC1090
   source <(
     cat <<EOF
-    local ${i}_helm_values_args=()
-    local ${i}_helm_values_file=\${${i^^}_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-${i}-values.yaml}
-    if [[ -f "\${${i}_helm_values_file}" ]]; then
-      echo "Using ${i^^} helm values file \${${i}_helm_values_file@Q}"
-      ${i}_helm_values_args=(--values "\${${i}_helm_values_file}")
+    local ${1}_helm_values_args=()
+    local ${1}_helm_values_file=\${${1^^}_HELM_UPGRADE_VALUES_FILE:-.gitlab/auto-deploy-${1}-values.yaml}
+    if [[ -f "\${${1}_helm_values_file}" ]]; then
+      echo "Using ${1^^} helm values file \${${1}_helm_values_file@Q}"
+      ${1}_helm_values_args=(--values "\${${1}_helm_values_file}")
     else
-      echo "No ${i^^} helm values file found at \${${i}_helm_values_file@Q}"
+      echo "No ${1^^} helm values file found at \${${1}_helm_values_file@Q}"
     fi
 
     # shellcheck disable=SC2086 # POSTGRESQL_HELM_UPGRADE_EXTRA_ARGS -- double quote variables to prevent globbing
@@ -258,15 +258,15 @@ function install_app() {
       --atomic \
       "\${debug_flag[@]}" \
       --wait \
-      --version "\${${i^^}_CHART_VERSION}" \
+      --version "\${${1^^}_CHART_VERSION}" \
       --set fullnameOverride="$name" \
-      --set image.tag="\${${i^^}_VERSION}" \
-      --values "${i}-specific-values.yaml" \
-      "\${${i}_helm_values_args[@]}" \
-      \${${i^^}_HELM_UPGRADE_EXTRA_ARGS} \
+      --set image.tag="\${${1^^}_VERSION}" \
+      --values "${1}-specific-values.yaml" \
+      "\${${1}_helm_values_args[@]}" \
+      \${${1^^}_HELM_UPGRADE_EXTRA_ARGS} \
       --namespace="${KUBE_NAMESPACE}" \
       "$name" \
-      "bitnami/${i}"
+      "bitnami/${1}"
 EOF
   )
 }
