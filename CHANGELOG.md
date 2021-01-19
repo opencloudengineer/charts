@@ -1,3 +1,12 @@
+## [0.5.4](https://github.com/opencloudengineer/lambda/compare/v0.5.3...v0.5.4) (2021-01-19)
+
+
+### Bug Fixes
+
+* escape `auto_database_uri` function call in `cat <<EOF` in deploy function ([d09a40f](https://github.com/opencloudengineer/lambda/commit/d09a40f55fa6d7fcedbbd283b380a2cd5b47da69))
+
+
+
 ## [0.5.3](https://github.com/opencloudengineer/lambda/compare/v0.5.2...v0.5.3) (2021-01-19)
 
 
