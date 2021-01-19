@@ -1,3 +1,12 @@
+## [0.5.2](https://github.com/opencloudengineer/lambda/compare/v0.5.1...v0.5.2) (2021-01-19)
+
+
+### Bug Fixes
+
+* `${1}` instead of `${i}` in install_app function ([89e622c](https://github.com/opencloudengineer/lambda/commit/89e622ca9f1a248f34b6fc5c0c2b65752477cfb8))
+
+
+
 ## [0.5.1](https://github.com/opencloudengineer/lambda/compare/v0.5.0...v0.5.1) (2021-01-18)
 
 
