@@ -179,7 +179,7 @@ function auto_database_uri() {
 
   mariadb)
     uri="jdbc:mysql://${MARIADB_RELEASE_NAME}:3306/${MARIADB_DB}?username=${MARIADB_USER}&password=${MARIADB_PASSWORD}"
-    echo "${MYSQL_URI-$uri}"
+    echo "${MARIADB_URI-$uri}"
     ;;
   mongodb)
     uri="mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_RELEASE_NAME}:27017/${MONGODB_DB}"
