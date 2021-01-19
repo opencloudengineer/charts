@@ -1,3 +1,12 @@
+## [0.5.3](https://github.com/opencloudengineer/lambda/compare/v0.5.2...v0.5.3) (2021-01-19)
+
+
+### Bug Fixes
+
+* `echo "${MARIADB_URI-$uri}"` for `case "${db}" in mariadb` in auto_database_uri function ([5617e9b](https://github.com/opencloudengineer/lambda/commit/5617e9b1e4d3756bb67ccc0f3c326268cafb4dfe))
+
+
+
 ## [0.5.2](https://github.com/opencloudengineer/lambda/compare/v0.5.1...v0.5.2) (2021-01-19)
 
 
