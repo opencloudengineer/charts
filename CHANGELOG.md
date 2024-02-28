@@ -1,3 +1,12 @@
+## [0.6.2](https://github.com/opencloudengineer/lambda/compare/v0.6.1...v0.6.2) (2024-02-28)
+
+
+### Bug Fixes
+
+* **ci:** rm flag --charts-repo from cr ([57139be](https://github.com/opencloudengineer/lambda/commit/57139be216576a9ba753dd9021f06354f47de83a))
+
+
+
 ## [0.6.1](https://github.com/opencloudengineer/lambda/compare/v0.6.0...v0.6.1) (2024-02-28)
 
 
