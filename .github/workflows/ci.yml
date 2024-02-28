@@ -53,7 +53,7 @@ jobs:
           sudo tar xvf /tmp/cr cr
           sudo chmod +x /tmp/cr
           mv cr /usr/local/bin/cr
-          ./cr version
+          cr version
           
 
       - name: Install yq
