@@ -1,3 +1,12 @@
+## [0.6.1](https://github.com/opencloudengineer/lambda/compare/v0.6.0...v0.6.1) (2024-02-28)
+
+
+### Bug Fixes
+
+* gotta manually install hub now ([c782581](https://github.com/opencloudengineer/lambda/commit/c7825818b9ebafbde2ad3c06fad59470047288f3))
+
+
+
 # [0.6.0](https://github.com/opencloudengineer/lambda/compare/v0.5.4...v0.6.0) (2024-02-28)
 
 
