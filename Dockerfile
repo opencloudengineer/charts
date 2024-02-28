@@ -1,4 +1,4 @@
-FROM registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.1.0
+FROM registry.gitlab.com/gitlab-org/cluster-integration/auto-deploy-image:v2.86.0
 
 COPY --from=mikefarah/yq:4.3.2 /usr/bin/yq /bin
 
