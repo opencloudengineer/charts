@@ -85,6 +85,7 @@ jobs:
           MSG: ${{ steps.changelog.outputs.clean_changelog }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          sudo apt-get update && sudo apt-get install -yq hub
           set -x
           assets=()
           for asset in lambda-*.tgz; do
