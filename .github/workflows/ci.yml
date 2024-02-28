@@ -98,7 +98,6 @@ jobs:
           cr index \
             --owner "${GITHUB_REPOSITORY_OWNER}" \
             --git-repo "${CI_REPOSITORY_NAME}" \
-            --charts-repo "https://${GITHUB_REPOSITORY_OWNER}.github.io/${CI_REPOSITORY_NAME}" \
             --token "${GITHUB_TOKEN}" \
             --release-name-template "v{{ .Version }}" \
             --push \
