@@ -1,3 +1,18 @@
+# [0.6.0](https://github.com/opencloudengineer/lambda/compare/v0.5.4...v0.6.0) (2024-02-28)
+
+
+### Bug Fixes
+
+* cr install without brew in ci ([50ee379](https://github.com/opencloudengineer/lambda/commit/50ee3794676cf64eccd48f1f5664a091c58dc3b3))
+* rm ./ ([4410b72](https://github.com/opencloudengineer/lambda/commit/4410b72567e74f9d31a470bc17c6e3affa75cab6))
+
+
+### Features
+
+* upgrade base image version in dockerfile ([71874a6](https://github.com/opencloudengineer/lambda/commit/71874a6efaf8a01e5800274dcc87c5a10f57185a))
+
+
+
 ## [0.5.4](https://github.com/opencloudengineer/lambda/compare/v0.5.3...v0.5.4) (2021-01-19)
 
 

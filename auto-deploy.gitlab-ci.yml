@@ -1,5 +1,5 @@
 .auto-deploy:
-  image: "ghcr.io/opencloudengineer/lambda:v0.5.4"
+  image: "ghcr.io/opencloudengineer/lambda:v0.6.0"
   dependencies: []
 review:
   extends: .auto-deploy
